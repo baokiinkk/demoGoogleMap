@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import com.baokiiin.mymap.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -33,17 +34,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
+        setup()
+        clickView()
     }
 
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+        val HCM1 = LatLng(10.762622, 106.660172)
+        val HCM2 = LatLng(10.762622, 106.670172)
+
+        updateLocationUI()
+        getDeviceLocation()
+
+    }
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -65,41 +69,43 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         updateLocationUI()
     }
 
-    override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
-        val HCM1 = LatLng(10.762622, 106.660172)
-        val HCM2 = LatLng(10.762622, 106.670172)
+    private fun setup(){
+        binding = ActivityMapsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        updateLocationUI()
-        getDeviceLocation()
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+    private fun clickView(){
+        binding.btnGetLocation.setOnClickListener {
+            getDeviceLocation()
+        }
+        binding.btnShowListLocation.setOnClickListener {
 
+        }
+    }
+    private fun drawTwoPosition(latLng: MutableList<LatLng>){
         // vẽ nối 2 điểm
         val polylineOptions = PolylineOptions()
-            .add(HCM1)
-            .add(HCM2)
+            .add(latLng[0])
+            .add(latLng[1])
             .color(Color.RED)
 
-
-        // create markers
-        createMarket(mutableListOf(HCM1, HCM2))
         mMap.addPolyline(polylineOptions)
     }
+    private fun createMarket(latLng: MutableList<Market>) {
+        latLng.forEach {
+            mMap.addMarker(
+                MarkerOptions()
+                    .position(it.latLng)
+                    .title(it.title)
+                    .snippet(it.description)
+            )
+        }
 
-    private fun createMarket(latLng: MutableList<LatLng>) {
-
-        mMap.addMarker(
-            MarkerOptions()
-                .position(latLng[1])
-                .title("Hà Nội")
-                .flat(true)
-        )
-
-        mMap.addMarker(
-            MarkerOptions()
-                .position(latLng[0])
-                .title("Hồ Chí Minh")
-                .draggable(true)
-        )
     }
 
     private fun getLocationPermission() {
