@@ -1,11 +1,16 @@
 package com.baokiiin.mymap
 
-import android.os.Bundle
+import androidx.databinding.BindingAdapter
 import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
-class Utils {
+object  Utils {
 
+    const val TAG = "tag"
     fun showDialog(fragmentActivity: FragmentActivity) {
-
+        val diaLogFragment = ListLocationFragment()
+        diaLogFragment.show(fragmentActivity.supportFragmentManager,TAG)
     }
+
 }

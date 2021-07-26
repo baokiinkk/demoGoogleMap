@@ -6,13 +6,12 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
 import com.baokiiin.mymap.databinding.ActivityMapsBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -21,6 +20,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -41,13 +43,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        val HCM1 = LatLng(10.762622, 106.660172)
-        val HCM2 = LatLng(10.762622, 106.670172)
-
         updateLocationUI()
         getDeviceLocation()
 
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        EventBus.getDefault().unregister(this)
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -69,8 +74,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         updateLocationUI()
     }
 
-    private fun setup(){
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(market: Market) {
+        createMarket(market)
+        mMap.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                market.latLng, 17f
+            )
+        )
+    }
+
+    private fun setup() {
         binding = ActivityMapsBinding.inflate(layoutInflater)
+        binding.lifecycleOwner = this
+        EventBus.getDefault().register(this)
         setContentView(binding.root)
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -79,15 +96,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
-    private fun clickView(){
+
+    private fun clickView() {
         binding.btnGetLocation.setOnClickListener {
             getDeviceLocation()
         }
         binding.btnShowListLocation.setOnClickListener {
-
+            Utils.showDialog(this)
         }
     }
-    private fun drawTwoPosition(latLng: MutableList<LatLng>){
+
+    private fun drawTwoPosition(latLng: MutableList<LatLng>) {
         // vẽ nối 2 điểm
         val polylineOptions = PolylineOptions()
             .add(latLng[0])
@@ -96,15 +115,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mMap.addPolyline(polylineOptions)
     }
-    private fun createMarket(latLng: MutableList<Market>) {
-        latLng.forEach {
-            mMap.addMarker(
-                MarkerOptions()
-                    .position(it.latLng)
-                    .title(it.title)
-                    .snippet(it.description)
-            )
-        }
+
+    private fun createMarket(market: Market) {
+        mMap.addMarker(
+            MarkerOptions()
+                .position(market.latLng)
+                .title(market.title)
+                .snippet(market.description)
+        )
 
     }
 
@@ -146,14 +164,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val locationResult = mFusedLocationClient.lastLocation
                 locationResult.addOnSuccessListener {
                     myPosition = LatLng(it.latitude, it.longitude)
-
-                    mMap.addMarker(
-                        MarkerOptions()
-                            .position(myPosition)
-                            .title("Me")
-                            .icon(bitmapDescriptorFromVector(R.drawable.ic_round_person))
-                            .anchor(0.5f,0.5f)
-                    )
+                    Log.d("quocbao","${myPosition.latitude} - ${myPosition.longitude}")
+                    createMarket(Market("Me","device location",myPosition))
                     mMap.moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             myPosition, 17f
