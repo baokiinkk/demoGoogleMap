@@ -5,55 +5,59 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.DialogFragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.maps.model.LatLng
+import org.greenrobot.eventbus.EventBus
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class ListLocationFragment : DialogFragment() {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ListLocationFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class ListLocationFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var locationAdapter: ItemLocationAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list_location, container, false)
+        val view = inflater.inflate(R.layout.fragment_list_location, container, false)
+        setup(view)
+        getData()
+        return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ListLocationFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ListLocationFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+
+    private fun setup(view: View){
+        locationAdapter = ItemLocationAdapter {
+            dismiss()
+            EventBus.getDefault().post(it)
+        }
+        view.findViewById<RecyclerView>(R.id.recycleView).apply {
+            adapter = locationAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+        }
+    }
+
+    private fun getData(){
+        val HCM1 = LatLng(10.762622, 106.660172)
+        val HCM2 = LatLng(10.810583, 106.709145)
+        val HCM3 = LatLng(10.822340, 106.631541)
+        val HCM4 = LatLng(10.824079, 106.630189)
+        locationAdapter.submitList(
+            mutableListOf(
+                Market("HCM", "Hồ Chí Minh", HCM1),
+                Market(
+                    "Bình thạnh",
+                    "Phường 26, Bình Thạnh, Thành phố Hồ Chí Minh ",
+                    HCM2
+                ),
+                Market(
+                    "Quận 11",
+                    "33-15 Nguyễn Phúc Chu, Phường 15, Quận 11",
+                    HCM3
+                ),
+                Market("Tân Bình","13-1 Phan Huy Ích, Phường 15, Tân Bình",HCM4)
+            )
+        )
     }
 }
