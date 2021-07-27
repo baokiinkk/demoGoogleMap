@@ -8,7 +8,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -76,8 +75,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(market: Market) {
-        createMarket(market)
-        mMap.moveCamera(
+        mMap.addMarker(marketOptions(market))?.showInfoWindow()
+        mMap.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
                 market.latLng, 17f
             )
@@ -116,14 +115,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.addPolyline(polylineOptions)
     }
 
-    private fun createMarket(market: Market) {
-        mMap.addMarker(
-            MarkerOptions()
-                .position(market.latLng)
-                .title(market.title)
-                .snippet(market.description)
-        )
-
+    private fun marketOptions(market: Market): MarkerOptions {
+        return MarkerOptions()
+            .position(market.latLng)
+            .title(market.title)
+            .snippet(market.description)
     }
 
     private fun getLocationPermission() {
@@ -164,9 +160,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val locationResult = mFusedLocationClient.lastLocation
                 locationResult.addOnSuccessListener {
                     myPosition = LatLng(it.latitude, it.longitude)
-                    Log.d("quocbao","${myPosition.latitude} - ${myPosition.longitude}")
-                    createMarket(Market("Me","device location",myPosition))
-                    mMap.moveCamera(
+                    Log.d("quocbao", "${myPosition.latitude} - ${myPosition.longitude}")
+                    mMap.addMarker(
+                        marketOptions(Market("Me", "my location", myPosition))
+                            .icon(bitmapDescriptorFromVector(R.drawable.ic_round_person))
+                            .anchor(0.5f, 0.5f)
+                    )?.showInfoWindow()
+                    mMap.animateCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             myPosition, 17f
                         )

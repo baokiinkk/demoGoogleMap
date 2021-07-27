@@ -25,6 +25,8 @@ class ListLocationFragment : DialogFragment() {
         getData()
         return view
     }
+
+
     private fun setup(view: View){
         locationAdapter = ItemLocationAdapter {
             dismiss()
@@ -46,15 +48,15 @@ class ListLocationFragment : DialogFragment() {
                 Market("HCM", "Hồ Chí Minh", HCM1),
                 Market(
                     "Bình thạnh",
-                    "Phường 26, Bình Thạnh, Thành phố Hồ Chí Minh 700000, Việt Nam",
+                    "Phường 26, Bình Thạnh, Thành phố Hồ Chí Minh ",
                     HCM2
                 ),
                 Market(
                     "Quận 11",
-                    "33-15 Nguyễn Phúc Chu, Phường 15, Quận 11, Thành phố Hồ Chí Minh, Việt Nam",
+                    "33-15 Nguyễn Phúc Chu, Phường 15, Quận 11",
                     HCM3
                 ),
-                Market("Tân Bình","13-1 Phan Huy Ích, Phường 15, Tân Bình, Thành phố Hồ Chí Minh, Việt Nam",HCM4)
+                Market("Tân Bình","13-1 Phan Huy Ích, Phường 15, Tân Bình",HCM4)
             )
         )
     }
