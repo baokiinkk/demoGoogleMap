@@ -30,6 +30,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
     private lateinit var myPosition: LatLng
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private var polyline:Polyline? = null
     private var locationPermissionGranted = false
 
 
@@ -42,6 +43,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        clickMarket()
         updateLocationUI()
         getDeviceLocation()
 
@@ -82,7 +84,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         )
     }
-
+    private fun clickMarket(){
+        mMap.setOnMarkerClickListener {
+            polyline?.remove()
+            val market = Market(it.title,it.snippet,it.position)
+            Utils.diaLogBottom(this,layoutInflater,market){
+                drawTwoPosition(mutableListOf(myPosition,market.latLng))
+                mMap.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        myPosition, 16f
+                    )
+                )
+            }.show()
+            true
+        }
+    }
     private fun setup() {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         binding.lifecycleOwner = this
@@ -112,7 +128,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .add(latLng[1])
             .color(Color.RED)
 
-        mMap.addPolyline(polylineOptions)
+        polyline = mMap.addPolyline(polylineOptions)
     }
 
     private fun marketOptions(market: Market): MarkerOptions {
@@ -160,7 +176,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val locationResult = mFusedLocationClient.lastLocation
                 locationResult.addOnSuccessListener {
                     myPosition = LatLng(it.latitude, it.longitude)
-                    Log.d("quocbao", "${myPosition.latitude} - ${myPosition.longitude}")
                     mMap.addMarker(
                         marketOptions(Market("Me", "my location", myPosition))
                             .icon(bitmapDescriptorFromVector(R.drawable.ic_round_person))
