@@ -1,43 +1,48 @@
 package com.baokiiin.mymap
 
+import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.baokiiin.mymap.databinding.ItemLocationBinding
+import com.google.android.gms.maps.model.Marker
 
-class ItemLocationAdapter(private val onClick: (Market) -> Unit) :
-    ListAdapter<Market, ItemLocationAdapter.ViewHolder>(
+class ItemLocationAdapter(private val onClick: (Marker) -> Unit) :
+    ListAdapter<Marker, ItemLocationAdapter.ViewHolder>(
         ItemLocationDiffUtil()
     ) {
-    class ViewHolder(private val binding: ItemLocationBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        companion object {
-            fun from(parent: ViewGroup): ViewHolder {
-                val binding =
-                    ItemLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                return ViewHolder(
-                    binding
-                )
-            }
-        }
 
-        fun bind(item: Market, onClick: ((Market) -> Unit)? = null) {
-                binding.data = item
-                itemView.setOnClickListener {
-                    if (onClick != null) {
-                        onClick(item)
-                    }
+    var prevMarker = "-1"
+     inner class ViewHolder(private val binding: ItemLocationBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: Marker, onClick: ((Marker) -> Unit)? = null) {
+            binding.data = item
+            if(item.id == prevMarker){
+                itemView.setBackgroundColor(Color.YELLOW)
+            }
+            else
+                itemView.setBackgroundColor(Color.WHITE)
+            itemView.setOnClickListener {
+                if (item.id != prevMarker) {
+                    prevMarker = item.id
+                    itemView.setBackgroundColor(Color.YELLOW)
                 }
-                binding.executePendingBindings()
+                if (onClick != null) {
+                    onClick(item)
+                }
+            }
+            binding.executePendingBindings()
         }
 
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder.from(
-            parent
+        val binding =
+            ItemLocationBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(
+            binding
         )
     }
 
@@ -46,18 +51,18 @@ class ItemLocationAdapter(private val onClick: (Market) -> Unit) :
     }
 }
 
-class ItemLocationDiffUtil : DiffUtil.ItemCallback<Market>() {
+class ItemLocationDiffUtil : DiffUtil.ItemCallback<Marker>() {
     // cung cấp thông tin về cách xác định phần
     override fun areItemsTheSame(
-        oldItem: Market,
-        newItem: Market
+        oldItem: Marker,
+        newItem: Marker
     ): Boolean { // cho máy biết 2 item_detail khi nào giống
-        return oldItem.title == newItem.title // dung
+        return oldItem.id == newItem.id // dung
     }
 
     override fun areContentsTheSame(
-        oldItem: Market,
-        newItem: Market
+        oldItem: Marker,
+        newItem: Marker
     ): Boolean { // cho biết item_detail khi nào cùng nội dung
         return oldItem == newItem
     }
